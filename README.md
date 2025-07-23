@@ -1,6 +1,6 @@
-# json2dir: convert JSON with objects and strings into a directory
+# json-to-dir: convert JSON with objects and strings into a directory
 
-Example:
+An example:
 
 ```sh
 printf '%s' '{
@@ -9,5 +9,9 @@ printf '%s' '{
     "subfile": "Content.\n",
     "subdir": {}
   }
-}' | json2dir
+}' | json-to-dir
 ```
+
+## Building
+
+Run `cargo build` or `nix build`.
