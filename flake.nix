@@ -15,6 +15,7 @@
           inherit system;
           overlays = [
             self.overlays.default
+            (import rust-overlay)
           ];
         };
       in
@@ -22,8 +23,9 @@
         packages.default = pkgs.json-to-dir;
 
         devShells.default = pkgs.mkShell {
-          packages = [
-            ((pkgs.extend (import rust-overlay)).rust-bin.nightly.latest.default.override {
+          packages = with pkgs; [
+            python3
+            (rust-bin.nightly.latest.default.override {
               extensions = [
                 "rust-src"
                 "rust-docs"
