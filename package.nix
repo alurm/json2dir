@@ -1,6 +1,7 @@
 {
   rustPlatform,
   scdoc,
+  # python3,
   installShellFiles,
   lib,
 }:
@@ -8,7 +9,7 @@ rustPlatform.buildRustPackage {
   pname = "json-to-dir";
   version = "0.1.0";
   src = ./.;
-  cargoHash = "sha256-vKC2FYMng8bjCj3LjlME5/zvzr6Zl6DWmv7EmcW3Euk=";
+  cargoHash = "sha256-CEUu8cFnpKGLrukPJaRgpfdFpRyBlrPbGl9lW73S1l4=";
 
   nativeBuildInputs = [
     scdoc
@@ -26,4 +27,19 @@ rustPlatform.buildRustPackage {
     license = lib.licenses.mit;
     description = "json-to-dir: convert JSON with objects and strings into a directory";
   };
+
+  nativeCheckInputs = [
+    # python3
+  ];
+
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+
+    patchShebangs .
+
+    ./do test
+
+    runHook postCheck
+  '';
 }

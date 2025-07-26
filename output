@@ -1,0 +1,4 @@
++ cargo llvm-cov run --no-report --quiet -- --help 
+info: cargo-llvm-cov currently setting cfg(coverage) and cfg(coverage_nightly); you can opt-out it by passing --no-cfg-coverage and --no-cfg-coverage-nightly
+Usage: json-to-dir < file.json
+error: process didn't exit successfully: `/nix/store/ii930vs32rdasnrx8n9yanrwnbbqpr4d-cargo-1.90.0-nightly-2025-07-22-x86_64-unknown-linux-gnu/bin/cargo run --manifest-path /home/ghelman/my/json-to-dir/Cargo.toml --target-dir /home/ghelman/my/json-to-dir/target/llvm-cov-target --quiet -- --help` (exit status: 1)

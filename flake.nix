@@ -24,7 +24,7 @@
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            python3
+            es
             (rust-bin.nightly.latest.default.override {
               extensions = [
                 "rust-src"
@@ -37,23 +37,21 @@
           ];
         };
 
-        toDir =
-          name: expr:
-          pkgs.runCommand name
-            {
-              passAsFile = [ "dir" ];
-              dir = builtins.toJSON expr;
-            }
-            ''
-              mkdir $out
-              cd $out
-              ${pkgs.json-to-dir}/bin/json-to-dir < $dirPath
-            '';
+        # Converts a Nix expression to a directory.
+        #
+        # Two arguments are expected: the derivation name and the Nix expression to convert.
+        # 
+        # Strings are assumed to be JSON.
+        # Other data is first converted to JSON using builtins.toJSON.
+        # JSON objects represent directories.
+        # JSON strings represent file contents.
+        # JSON arrays of the form ["target"] represent symlinks.
+        toDir = (import ./to-dir.nix) pkgs;
       }
     )
     // {
       overlays.default = final: prev: {
-        json-to-dir = final.callPackage ./json-to-dir.nix { };
+        json-to-dir = final.callPackage ./package.nix { };
       };
     };
 }

@@ -1,6 +1,7 @@
 // TODO: add a badge for coverage to CI.
 // TODO: look into branch coverage?
 // TODO: run tests on a Windows machine?
+// TODO: add better documentation. Usage is currently very bad.
 
 use serde_json as json;
 use std::{
