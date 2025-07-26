@@ -1,7 +1,11 @@
+// TODO: add a badge for coverage to CI.
+// TODO: look into branch coverage?
+// TODO: run tests on a Windows machine?
+
 use serde_json as json;
 use std::{
     env::{self, args},
-    fs::{self, create_dir},
+    fs,
     io::{self, Read, stdin},
     mem,
     path::{self, PathBuf},
@@ -17,7 +21,8 @@ impl PartialEq for Error {
     }
 }
 
-/// Typed errors used for tests. PartialEq is implemented for tests.
+// TODO: figure out a way to properly create dummy payloads.
+/// Tagged errors, useful for tests. PartialEq just checks the discriminant and not the payload.
 #[derive(Debug, Error)]
 enum Error {
     #[error("the JSON is not an object")]
@@ -58,12 +63,28 @@ enum Error {
     NotSingleStringArray { context: PathBuf },
 }
 
-// TODO:
-// Consider adding an option not to overwrite old files?
-// To be clear, directory <-> file conversion throw an error, but file <-> file don't.
-//
-/// Converts a JSON object to a directory, recursively.
-fn json_object_to_dir_rec(context: &mut PathBuf, object: json::Map<String, json::Value>) -> Result {
+#[derive(Default)]
+/// Cfg provides a way for tests to have a representation at runtime if #[cfg(test)] is true.
+struct Cfg {
+    #[cfg(test)]
+    test: Test,
+}
+
+#[cfg(test)]
+#[derive(Default, Debug)]
+/// Runtime representation of a test. Useful for causing some hard-to-cause errors.
+enum Test {
+    #[default]
+    Default,
+    #[cfg(unix)]
+    CauseChangeDirUpError,
+}
+
+fn json_object_to_dir_rec(
+    context: &mut PathBuf,
+    object: json::Map<String, json::Value>,
+    _cfg: &Cfg,
+) -> Result {
     for (name, value) in object {
         let path_component: PathBuf = name.clone().into();
 
@@ -102,11 +123,8 @@ fn json_object_to_dir_rec(context: &mut PathBuf, object: json::Map<String, json:
 
             // Create a directory.
             json::Value::Object(subdir) => {
-                if let Err(e) = create_dir(&path_component) {
+                if let Err(e) = fs::create_dir(&path_component) {
                     match e.kind() {
-                        // For regular files, this is fine.
-                        // For directories, this is fine.
-                        // For symlinks, this is fine, chdir will fail.
                         std::io::ErrorKind::AlreadyExists => {}
                         _ => {
                             return Err(Error::Create {
@@ -125,8 +143,23 @@ fn json_object_to_dir_rec(context: &mut PathBuf, object: json::Map<String, json:
                     });
                 };
 
+                #[cfg(all(test, unix))]
+                if let Test::CauseChangeDirUpError = _cfg.test {
+                    let here = path::absolute(std::env::current_dir().unwrap()).unwrap();
+                    fs::create_dir(here.join("bar")).unwrap();
+                    env::set_current_dir("bar").unwrap();
+
+                    use std::{fs::File, os::unix::fs::PermissionsExt};
+
+                    let meta = here.metadata().unwrap();
+                    let mut perms = meta.permissions();
+                    perms.set_mode(0o600);
+                    let file = File::open(here).unwrap();
+                    file.set_permissions(perms).unwrap();
+                }
+
                 // TODO: consider using a queue instead of recursion to avoid stack overflows?
-                json_object_to_dir_rec(context, subdir)?;
+                json_object_to_dir_rec(context, subdir, _cfg)?;
 
                 if let Err(e) = env::set_current_dir(path::Component::ParentDir) {
                     return Err(Error::ChangeDirUp {
@@ -175,11 +208,15 @@ fn current_dir() -> PathBuf {
     path::Component::CurDir.as_os_str().into()
 }
 
-fn json_object_to_dir(object: json::Map<String, json::Value>) -> Result {
-    json_object_to_dir_rec(&mut current_dir(), object)
+// TODO: add an option not to overwrite old files?
+/// Converts a JSON object to a directory, recursively.
+/// Operating system's defaults are generally followed without adding logic on top.
+/// For example, by default, writing to symlinks will write to their target, the symlink itself will not be replaced.
+fn json_object_to_dir(object: json::Map<String, json::Value>, cfg: &Cfg) -> Result {
+    json_object_to_dir_rec(&mut current_dir(), object, cfg)
 }
 
-fn run(string: &str) -> Result {
+fn parse_and_run(string: &str, cfg: &Cfg) -> Result {
     let Ok(json) = json::from_str(string) else {
         return Err(Error::CouldNotParseJson);
     };
@@ -188,7 +225,7 @@ fn run(string: &str) -> Result {
         return Err(Error::JsonIsNotObject);
     };
 
-    json_object_to_dir(object)
+    json_object_to_dir(object, cfg)
 }
 
 fn main() -> ExitCode {
@@ -199,19 +236,20 @@ fn main() -> ExitCode {
 
     let mut string = String::new();
 
-    if stdin().read_to_string(&mut string).is_err() {
-        eprintln!("Error: couldn't read stdin.");
+    if let Err(e) = stdin().read_to_string(&mut string) {
+        eprintln!("Error: couldn't read stdin to an internal representation: {e:#?}.");
         return ExitCode::FAILURE;
     }
 
-    match run(&string) {
-        Ok(_) => ExitCode::SUCCESS,
-        Err(e) => {
-            eprintln!("Error: {e}.");
-            ExitCode::FAILURE
-        }
+    if let Err(e) = parse_and_run(&string, &Cfg::default()) {
+        eprintln!("Error: {e}.");
+        return ExitCode::FAILURE;
     }
+
+    ExitCode::SUCCESS
 }
+
+// TODO: put these somewhere else?
 
 #[cfg(test)]
 mod tests {
@@ -229,6 +267,7 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
+    // TODO: name this differently?
     fn system_test() -> Result<(), Box<dyn error::Error>> {
         #[derive(Debug)]
         enum Environment {
@@ -241,93 +280,95 @@ mod tests {
             input: &'a str,
             result: Result,
             environment: Environment,
+            action: crate::Test,
+        }
+
+        impl<'a> Test<'a> {
+            fn new(input: &'a str) -> Self {
+                Self {
+                    input,
+                    result: Ok(()),
+                    environment: Environment::Default,
+                    action: crate::Test::default(),
+                }
+            }
         }
 
         let tests = [
             Test {
-                input: r#"{"/": ""}"#,
                 result: Err(Error::NotRegularComponent {
                     name: "".into(),
                     context: "".into(),
                 }),
-                environment: Environment::Default,
+                ..Test::new(r#"{"/": ""}"#)
             },
             Test {
-                input: r#"{".": ""}"#,
                 result: Err(Error::NotRegularComponent {
                     name: "".into(),
                     context: "".into(),
                 }),
-                environment: Environment::Default,
+                ..Test::new(r#"{".": ""}"#)
             },
             Test {
-                input: r#"{"..": ""}"#,
                 result: Err(Error::NotRegularComponent {
                     name: "".into(),
                     context: "".into(),
                 }),
-                environment: Environment::Default,
+                ..Test::new(r#"{"..": ""}"#)
             },
             Test {
-                input: r#"{"foo": [1, 2, 3]}"#,
                 result: Err(Error::NotSingleStringArray { context: "".into() }),
-                environment: Environment::Default,
+                ..Test::new(r#"{"foo": [1, 2, 3]}"#)
             },
             Test {
-                input: r#"{"foo": "kek"}"#,
-                result: Ok(()),
                 environment: Environment::MakeFooToBarSymlink,
+                ..Test::new(r#"{"foo": "kek"}"#)
             },
             Test {
-                input: r#"{"foo": {}}"#,
                 result: Err(Error::ChangeDir {
                     e: make_dummy_io_error(),
                     context: "".into(),
                 }),
                 environment: Environment::MakeFooToBarSymlink,
+                ..Test::new(r#"{"foo": {}}"#)
             },
             Test {
-                input: r#"{"foo": ["bar"]}"#,
-                result: Ok(()),
-                environment: Environment::Default,
+                ..Test::new(r#"{"foo": ["bar"]}"#)
             },
             Test {
-                input: r#"{"foo": [""]}"#,
                 result: Err(Error::Create {
                     e: make_dummy_io_error(),
                     context: "".into(),
                     kind: "",
                 }),
-                environment: Environment::Default,
+                ..Test::new(r#"{"foo": [""]}"#)
+            },
+            Test {
+                result: Err(Error::ChangeDirUp {
+                    e: make_dummy_io_error(),
+                    context: "".into(),
+                }),
+                action: crate::Test::CauseChangeDirUpError,
+                ..Test::new(r#"{"foo": {}}"#)
             },
         ];
 
-        // For some reason, using a tempdir per test makes them fail sometimes.
-        let dir = tempfile::tempdir()?;
-        env::set_current_dir(&dir)?;
-
-        for (i, test) in tests.iter().enumerate() {
+        for test in tests {
             use std::os::unix;
 
-            println!("\n# Subtest number {i}\n{test:#?}");
+            println!("{test:#?}");
 
-            let subdir = i.to_string();
-
-            create_dir(&subdir)?;
-            env::set_current_dir(&subdir)?;
+            let tmp = tempfile::tempdir().unwrap();
+            env::set_current_dir(&tmp).unwrap();
 
             match test.environment {
                 Environment::Default => {}
-                // Environment::MakeFooFile => fs::write("foo", "")?,
-                // Environment::MakeFooDir => create_dir("foo")?,
-                Environment::MakeFooToBarSymlink => unix::fs::symlink("bar", "foo")?,
+                Environment::MakeFooToBarSymlink => unix::fs::symlink("bar", "foo").unwrap(),
             }
 
-            let result = run(test.input);
+            let result = parse_and_run(test.input, &Cfg { test: test.action });
 
             assert_eq!(result, test.result);
-
-            env::set_current_dir(&dir)?;
         }
 
         Ok(())
@@ -350,96 +391,104 @@ mod tests {
             environment: Environment,
         }
 
+        impl<'a> Test<'a> {
+            fn new(input: &'a str) -> Self {
+                Self {
+                    input,
+                    result: Ok(()),
+                    environment: Environment::Default,
+                }
+            }
+        }
+
         let tests = [
             Test {
-                input: r"3",
                 result: Err(Error::JsonIsNotObject),
-                environment: Environment::Default,
+                ..Test::new("3")
             },
             Test {
-                input: "3 4",
+                ..Test::new(r#"{"foo": {}}"#)
+            },
+            Test {
                 result: Err(Error::CouldNotParseJson),
-                environment: Environment::Default,
+                ..Test::new("3 4")
             },
             Test {
-                input: r#"{"foo/bar": ""}"#,
                 result: Err(Error::MultiplePathComponents {
                     name: "".into(),
                     context: "".into(),
                 }),
-                environment: Environment::Default,
+                ..Test::new(r#"{"foo/bar": ""}"#)
             },
             Test {
-                input: r#"{"file": "Hello!"}"#,
-                result: Ok(()),
-                environment: Environment::Default,
+                ..Test::new(r#"{"file": "Hello!"}"#)
             },
+            Test { ..Test::new("{}") },
             Test {
-                input: r"{}",
-                result: Ok(()),
-                environment: Environment::Default,
-            },
-            Test {
-                input: r#"{"file": 3}"#,
                 result: Err(Error::InvalidJsonPart { context: "".into() }),
-                environment: Environment::Default,
+                ..Test::new(r#"{"file": 3}"#)
             },
             Test {
-                input: r#"{"foo": {}}"#,
                 result: Err(Error::ChangeDir {
                     context: "".into(),
                     e: make_dummy_io_error(),
                 }),
                 environment: Environment::MakeFooFile,
+                ..Test::new(r#"{"foo": {}}"#)
             },
             Test {
-                input: r#"{"foo": {}}"#,
-                result: Ok(()),
                 environment: Environment::MakeFooDir,
+                ..Test::new(r#"{"foo": {}}"#)
             },
             Test {
-                input: r#"{"foo": "Hello"}"#,
                 result: Err(Error::Create {
                     e: make_dummy_io_error(),
                     kind: "",
                     context: "".into(),
                 }),
                 environment: Environment::MakeFooDir,
+                ..Test::new(r#"{"foo": "Hello"}"#)
             },
             Test {
-                input: r#"{"foo": "Hello"}"#,
-                result: Ok(()),
                 environment: Environment::MakeFooFile,
+                ..Test::new(r#"{"foo": "Hello"}"#)
             },
             Test {
-                input: r#"{"foo": {"bar": "baz"}}"#,
                 result: Err(Error::Create {
                     e: make_dummy_io_error(),
                     kind: "",
                     context: "".into(),
                 }),
                 environment: Environment::MakeUnwritableDir,
+                ..Test::new(r#"{"foo": {"bar": "baz"}}"#)
+            },
+            Test {
+                result: Err(Error::MultiplePathComponents {
+                    name: "".into(),
+                    context: "./foo/bar".into(),
+                }),
+                ..Test::new(r#"{"foo": {"bar": {"": "error"}}}"#)
             },
         ];
 
         for test in tests {
             println!("{test:#?}");
 
-            let tmp = tempfile::tempdir()?;
-            env::set_current_dir(&tmp)?;
+            let tmp = tempfile::tempdir().unwrap();
+            env::set_current_dir(&tmp).unwrap();
 
             match test.environment {
                 Environment::Default => {}
-                Environment::MakeFooFile => fs::write("foo", "")?,
-                Environment::MakeFooDir => create_dir("foo")?,
+                Environment::MakeFooFile => fs::write("foo", "").unwrap(),
+                Environment::MakeFooDir => fs::create_dir("foo").unwrap(),
                 Environment::MakeUnwritableDir => {
-                    let mut permissions = fs::metadata(current_dir())?.permissions();
+                    let mut permissions = fs::metadata(current_dir()).unwrap().permissions();
                     permissions.set_readonly(true);
-                    fs::set_permissions(current_dir(), permissions)?;
+                    fs::set_permissions(current_dir(), permissions).unwrap();
                 }
             }
 
-            let result = run(test.input);
+            let result = parse_and_run(test.input, &Cfg::default());
 
             assert_eq!(result, test.result);
         }

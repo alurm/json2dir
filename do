@@ -32,11 +32,9 @@ match subcommand:
         args, rest = split_by_double_dash(args)
         exec("cargo", "test", *args, "--", "--test-threads", "1", *rest)
 
-    case "coverage":
+    case "test-with-coverage":
         args, rest = split_by_double_dash(args)
         exec("cargo", "llvm-cov", *args, "--", "--test-threads", "1", *rest)
-
-    case "tests": pass
 
     case _:
         usage()

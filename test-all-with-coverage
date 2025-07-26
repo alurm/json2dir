@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+run() {
+  # Note: don't do --ignore-run-fail, since we want to check for exit codes.
+  cargo llvm-cov run --no-report --quiet "$@"
+}
+
+bad() {
+  set +x
+  printf '%s\n' "Error: test failed: $1."
+  exit 1
+}
+
+set -u
+
+cargo llvm-cov clean --workspace
+
+./do test-with-coverage --no-report --quiet
+
+set -x
+
+output=$(echo {} | run -- --help 2>&1) && bad 'zero exit code on usage'
+printf '%s\n' "$output" | grep -qi usage || bad 'no usage'
+
+echo {} | run || bad 'non-zero exit code on valid input'
+
+echo f | run && bad 'zero exit code on invalid JSON'
+
+printf '\xFF\xFE' | run && bad 'zero exit code on invalid UTF-8'
+
+cargo llvm-cov report --ignore-filename-regex rust/library/std "$@"
