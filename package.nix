@@ -61,7 +61,6 @@
       [
         jq
         cargo-llvm-cov
-        clang-tools
       ]
     else
       [ ]

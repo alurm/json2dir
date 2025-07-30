@@ -14,7 +14,7 @@
         pkgs = (import nixpkgs) {
           inherit system;
           overlays = [
-            self.overlays.default
+            self.overlays.dev
             (import rust-overlay)
           ];
         };
@@ -26,8 +26,9 @@
         };
 
         devShells.default = pkgs.mkShell {
+          inputsFrom = [ pkgs.json-to-dir-coverage ];
+
           packages = with pkgs; [
-            es
             (rust-bin.nightly.latest.default.override {
               extensions = [
                 "rust-src"
@@ -53,9 +54,14 @@
       }
     )
     // {
-      overlays.default = final: prev: {
-        json-to-dir = final.callPackage ./package.nix { custom.coverage = false; };
-        json-to-dir-coverage = final.callPackage ./package.nix { custom.coverage = true; };
+      overlays = {
+        default = final: prev: {
+          json-to-dir = final.callPackage ./package.nix { custom.coverage = false; };
+        };
+        dev = final: prev: {
+          json-to-dir = final.callPackage ./package.nix { custom.coverage = false; };
+          json-to-dir-coverage = final.callPackage ./package.nix { custom.coverage = true; };
+        };
       };
     };
 }
