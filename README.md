@@ -1,5 +1,7 @@
 # json-to-dir: convert JSON with objects and strings into a directory
 
+![Nix build](https://github.com/alurm/json-to-dir/actions/workflows/build.yaml/badge.svg)
+
 An example:
 
 ```sh

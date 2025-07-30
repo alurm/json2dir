@@ -1,4 +1,4 @@
-name: Build the project
+name: Nix build
 on:
   push:
     branches: [main]
