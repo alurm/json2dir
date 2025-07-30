@@ -1,4 +1,4 @@
-name: Build
+name: 100% region coverage
 on:
   push:
     branches: [main]
@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: determinatesystems/determinate-nix-action@v3
-      - run: nix build --print-build-logs
+      - run: nix build --print-build-logs .#coverage

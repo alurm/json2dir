@@ -20,7 +20,10 @@
         };
       in
       {
-        packages.default = pkgs.json-to-dir;
+        packages = {
+          default = pkgs.json-to-dir;
+          coverage = pkgs.json-to-dir-coverage;
+        };
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -51,7 +54,8 @@
     )
     // {
       overlays.default = final: prev: {
-        json-to-dir = final.callPackage ./package.nix { };
+        json-to-dir = final.callPackage ./package.nix { custom.coverage = false; };
+        json-to-dir-coverage = final.callPackage ./package.nix { custom.coverage = true; };
       };
     };
 }

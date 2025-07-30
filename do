@@ -55,9 +55,9 @@ fn run-shell-tests {
 }
 
 fn log {
-	printf '%s ' +
-	printf '%s ' $*
-	echo
+	printf '%s ' + >[1=2]
+	printf '%s ' $* >[1=2]
+	printf '\n' >[1=2]
 	$*
 }
 
@@ -80,18 +80,37 @@ actions = (
 	}
 
 	# TODO: this should be cleaned up and figured out.
-	run-all-tests-with-coverage 'Runs all tests and collects test coverage information.' {
+	run-all-tests-with-coverage 'Runs all tests and collects the coverage information.' {
 		log cargo llvm-cov clean --workspace
+
 		log cargo llvm-cov --no-report --quiet -- --test-threads 1
 		
 		local (
 			fn-run = @ {
 				# Note: --ignore-run-fail isn't done, since we want to check the exit codes.
-				log cargo llvm-cov run --no-report --quiet $*
+				cargo llvm-cov run --no-report --quiet $*
 			}
 		) run-shell-tests
 
 		log cargo llvm-cov report --ignore-filename-regex rust/library/std $*
+	}
+
+	run-all-tests-with-coverage-with-percent-output 'Runs all tests and collects the regions coverage output and reports the percent only.' {
+		log cargo llvm-cov clean --workspace
+
+		log cargo llvm-cov --no-report --quiet -- --test-threads 1 >/dev/null
+
+		local (
+			fn-run = @ {
+				# Note: --ignore-run-fail isn't done, since we want to check the exit codes.
+				cargo llvm-cov run --no-report --quiet $*
+			}
+		) run-shell-tests
+
+		[ `{
+			cargo llvm-cov report --ignore-filename-regex rust/library/std --json |
+			jq .data[0].totals.regions.percent
+		} '=' 100 ]
 	}
 
 	test-with-coverage 'Run cargo llvm-cov.' {
