@@ -1,9 +1,9 @@
 {
   rustPlatform,
   scdoc,
-  # python3,
   installShellFiles,
   lib,
+  es,
 }:
 rustPlatform.buildRustPackage {
   pname = "json-to-dir";
@@ -28,9 +28,7 @@ rustPlatform.buildRustPackage {
     description = "json-to-dir: convert JSON with objects and strings into a directory";
   };
 
-  nativeCheckInputs = [
-    # python3
-  ];
+  nativeCheckInputs = [ es ];
 
   doCheck = true;
   checkPhase = ''
@@ -38,7 +36,7 @@ rustPlatform.buildRustPackage {
 
     patchShebangs .
 
-    ./do test
+    ./do run-all-tests
 
     runHook postCheck
   '';

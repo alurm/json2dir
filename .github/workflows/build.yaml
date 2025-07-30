@@ -1,0 +1,12 @@
+name: Build the project
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: determinatesystems/determinate-nix-action@v3
+      - run: nix build --print-build-logs
