@@ -110,6 +110,10 @@ fn json_object_to_dir_rec(
 
         context.push(path_component.clone());
 
+        // Ignore errors here.
+        // We don't care what was here before, but we want to remove symlinks.
+        let _ = fs::remove_file(&path_component);
+
         match value {
             // Create a regular file.
             json::Value::String(content) => {
@@ -274,6 +278,7 @@ mod tests {
         enum Environment {
             Default,
             MakeFooToBarSymlink,
+            MakeUnexecutableDir,
         }
 
         #[derive(Debug)]
@@ -330,7 +335,7 @@ mod tests {
                     e: make_dummy_io_error(),
                     context: "".into(),
                 }),
-                environment: Environment::MakeFooToBarSymlink,
+                environment: Environment::MakeUnexecutableDir,
                 ..Test::new(r#"{"foo": {}}"#)
             },
             Test {
@@ -365,6 +370,15 @@ mod tests {
             match test.environment {
                 Environment::Default => {}
                 Environment::MakeFooToBarSymlink => unix::fs::symlink("bar", "foo").unwrap(),
+                Environment::MakeUnexecutableDir => {
+                    use std::{fs::set_permissions, os::unix::fs::PermissionsExt};
+
+                    let p = PermissionsExt::from_mode(0o600);
+
+                    fs::create_dir("foo").unwrap();
+
+                    set_permissions("foo", p).unwrap();
+                }
             }
 
             let result = parse_and_run(test.input, &Cfg { test: test.action });
@@ -428,14 +442,6 @@ mod tests {
             Test {
                 result: Err(Error::InvalidJsonPart { context: "".into() }),
                 ..Test::new(r#"{"file": 3}"#)
-            },
-            Test {
-                result: Err(Error::ChangeDir {
-                    context: "".into(),
-                    e: make_dummy_io_error(),
-                }),
-                environment: Environment::MakeFooFile,
-                ..Test::new(r#"{"foo": {}}"#)
             },
             Test {
                 environment: Environment::MakeFooDir,

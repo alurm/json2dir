@@ -11,7 +11,6 @@
   # Not sure if that is the case at the moment.
   jq,
   cargo-llvm-cov,
-  clang-tools,
   rust-bin,
   makeRustPlatform,
 }:
