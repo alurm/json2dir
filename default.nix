@@ -11,21 +11,8 @@ let
     (
       if check-coverage then
         let
-          toolchain = args.rust-bin.nightly.latest.default.override {
-            extensions = [
-              "llvm-tools-preview"
-
-              # These are not required for tests.
-              # But we download them here regardless.
-              # These should be used by inputsFrom by the devShell.
-              "rust-src"
-              "miri"
-              "rust-analyzer"
-              "llvm-tools-preview"
-            ];
-          };
+          toolchain = args.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         in
-        # TODO: make this could be made cleaner somehow.
         args.makeRustPlatform {
           rustc = toolchain;
           cargo = toolchain;
@@ -79,7 +66,9 @@ let
 
           patchShebangs .
 
-          ./do ${if check-coverage then "run-all-tests-with-coverage-with-percent-output" else "run-all-tests"}
+          ./do ${
+            if check-coverage then "run-all-tests-with-coverage-with-percent-output" else "run-all-tests"
+          }
 
           runHook postCheck
         '';
