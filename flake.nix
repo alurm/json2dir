@@ -15,52 +15,29 @@
           inherit system;
           overlays = [
             self.overlays.dev
-            (import rust-overlay)
+            rust-overlay.overlays.default
           ];
         };
       in
       {
         packages = {
-          default = pkgs.json-to-dir;
-          coverage = pkgs.json-to-dir-coverage;
+          default = pkgs.json2dir;
+          check-coverage = pkgs.json2dir-check-coverage;
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ pkgs.json-to-dir-coverage ];
-
-          packages = with pkgs; [
-            (rust-bin.nightly.latest.default.override {
-              extensions = [
-                "rust-src"
-                "rust-docs"
-                "miri"
-                "rust-analyzer"
-                "llvm-tools-preview"
-              ];
-            })
-          ];
+          inputsFrom = [ pkgs.json2dir-check-coverage ];
         };
-
-        # Converts a Nix expression to a directory.
-        #
-        # Two arguments are expected: the derivation name and the Nix expression to convert.
-        # 
-        # Strings are assumed to be JSON.
-        # Other data is first converted to JSON using builtins.toJSON.
-        # JSON objects represent directories.
-        # JSON strings represent file contents.
-        # JSON arrays of the form ["target"] represent symlinks.
-        toDir = (import ./to-dir.nix) pkgs;
       }
     )
     // {
       overlays = {
         default = final: prev: {
-          json-to-dir = final.callPackage ./package.nix { custom.coverage = false; };
+          json2dir = final.callPackage (import ./. { check-coverage = false; }) { };
         };
         dev = final: prev: {
-          json-to-dir = final.callPackage ./package.nix { custom.coverage = false; };
-          json-to-dir-coverage = final.callPackage ./package.nix { custom.coverage = true; };
+          json2dir = final.callPackage (import ./. { check-coverage = false; }) { };
+          json2dir-check-coverage = final.callPackage (import ./. { check-coverage = true; }) { };
         };
       };
     };

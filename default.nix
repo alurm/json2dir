@@ -1,0 +1,114 @@
+{ check-coverage }:
+let
+  impl =
+    args@{
+      scdoc,
+      installShellFiles,
+      lib,
+      es,
+      ...
+    }:
+    (
+      if check-coverage then
+        let
+          toolchain = args.rust-bin.nightly.latest.default.override {
+            extensions = [
+              "llvm-tools-preview"
+
+              # These are not required for tests.
+              # But we download them here regardless.
+              # These should be used by inputsFrom by the devShell.
+              "rust-src"
+              "miri"
+              "rust-analyzer"
+              "llvm-tools-preview"
+            ];
+          };
+        in
+        # TODO: make this could be made cleaner somehow.
+        args.makeRustPlatform {
+          rustc = toolchain;
+          cargo = toolchain;
+        }
+      else
+        args.rustPlatform
+    ).buildRustPackage
+      {
+        pname = "json2dir";
+        version = "0.1.0";
+        src = ./.;
+
+        cargoHash = "sha256-v+pbMlrcz1Cx3j8swYRkjEwSY2wv0047DScb/f8YxgI=";
+
+        nativeBuildInputs = [
+          scdoc
+          installShellFiles
+        ];
+
+        # TODO: update the man page.
+        postInstall = ''
+          scdoc < ./json2dir.1.scd > json2dir.1
+          installManPage json2dir.1
+        '';
+
+        meta = {
+          homepage = "https://github.com/alurm/json2dir";
+          license = lib.licenses.mit;
+          description = "Program to convert JSON expressions to directory trees";
+        };
+
+        nativeCheckInputs = [
+          es
+        ]
+        ++ (
+          if check-coverage then
+            with args;
+            [
+              jq
+              cargo-llvm-cov
+            ]
+          else
+            [ ]
+        );
+
+        # TODO: check if this is needed.
+        doCheck = true;
+
+        checkPhase = ''
+          runHook preCheck
+
+          patchShebangs .
+
+          ./do ${if check-coverage then "run-all-tests-with-coverage-with-percent-output" else "run-all-tests"}
+
+          runHook postCheck
+        '';
+      };
+in
+if
+  check-coverage
+
+# TODO: remove duplication.
+then
+  args@{
+    scdoc,
+    installShellFiles,
+    lib,
+    es,
+
+    rust-bin,
+    jq,
+    cargo-llvm-cov,
+    makeRustPlatform,
+  }:
+  impl args
+else
+  args@{
+    scdoc,
+    installShellFiles,
+    lib,
+    es,
+
+    rustPlatform,
+  }:
+  impl args

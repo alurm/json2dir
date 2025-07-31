@@ -95,6 +95,7 @@ actions = (
 		log cargo llvm-cov report --ignore-filename-regex rust/library/std $*
 	}
 
+	# TODO: fix this naming. It is currently misleading.
 	run-all-tests-with-coverage-with-percent-output 'Runs all tests and collects the regions coverage output and reports the percent only.' {
 		log cargo llvm-cov clean --workspace
 

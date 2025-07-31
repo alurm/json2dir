@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: determinatesystems/determinate-nix-action@v3
-      - run: nix build --print-build-logs .#coverage
+      - run: nix build --print-build-logs .#check-coverage

@@ -1,9 +1,11 @@
-# A JSON-to-dir converter in Rust and a poor man's home-manager alternative in Nix
+# TODO: finish/rework this.
 
-![Build](https://github.com/alurm/json-to-dir/actions/workflows/build.yaml/badge.svg)
-![100% region coverage](https://github.com/alurm/json-to-dir/actions/workflows/coverage.yaml/badge.svg)
+# A json2dir converter in Rust and a poor man's home-manager alternative in Nix
 
-## The json-to-dir
+![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
+![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/full-region-coverage.yaml/badge.svg)
+
+## The json2dir
 
 An example:
 
@@ -14,12 +16,12 @@ printf '%s' '{
     "subfile": "Content.\n",
     "subdir": {}
   }
-}' | json-to-dir
+}' | json2dir
 ```
 
 ## The config management part
 
-`json-to-dir` when combined with `nix profile` can be used as a poor man's home-manager alternative: `nix profile` can manage your packages, while `json-to-dir` can manage your `~/.config`.
+`json2dir` when combined with `nix profile` can be used as a poor man's home-manager alternative: `nix profile` can manage your packages, while `json2dir` can manage your `~/.config`.
 
 TODO: finish this.
 

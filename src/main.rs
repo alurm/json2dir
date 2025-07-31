@@ -235,7 +235,7 @@ fn parse_and_run(string: &str, cfg: &Cfg) -> Result {
 
 fn main() -> ExitCode {
     if args().len() != 1 {
-        eprintln!("Usage: json-to-dir < file.json");
+        eprintln!("Usage: json2dir < file.json");
         return ExitCode::FAILURE;
     }
 
