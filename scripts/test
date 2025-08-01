@@ -1,0 +1,4 @@
+#!/bin/sh
+
+./scripts/cargo-test || exit 1
+./scripts/test-cli || exit 1

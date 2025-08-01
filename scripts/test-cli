@@ -1,0 +1,4 @@
+#!/bin/sh
+
+MY_TEST_RUNNER=./scripts/helpers/default-cli-test-runner \
+exec ./scripts/helpers/test-cli

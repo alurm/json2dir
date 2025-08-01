@@ -1,0 +1,21 @@
+#!/usr/bin/env -S jq -nrf --args --
+# Usage: eval set -- "$(split-by-double-dash ...)"
+# Or, in Bash: eval array=("$(split-by-double-dash ...)")
+$ARGS.positional |
+reduce .[] as $arg (
+  {
+    before: [],
+    after: [],
+    found: false,
+  };
+  if .["found"] then
+    . | .after += [$arg]
+  elif $arg == "--" then
+    . | .found = true
+  else
+    . | .before += [$arg]
+  end
+) |
+{ before, after } |
+map(@sh) |
+@sh

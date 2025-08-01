@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec [ "$(./scripts/test-and-collect-coverage --json | jq .data[0].totals.regions.percent)" = 100 ]

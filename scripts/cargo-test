@@ -1,0 +1,3 @@
+#!/bin/sh
+eval set -- "$(./scripts/helpers/split-by-double-dash "$@")"
+eval exec cargo test "$1" -- --test-threads 1 "$2"

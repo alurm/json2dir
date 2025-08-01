@@ -5,7 +5,6 @@ let
       scdoc,
       installShellFiles,
       lib,
-      es,
       ...
     }:
     (
@@ -44,10 +43,7 @@ let
           description = "Program to convert JSON expressions to directory trees";
         };
 
-        nativeCheckInputs = [
-          es
-        ]
-        ++ (
+        nativeCheckInputs =
           if check-coverage then
             with args;
             [
@@ -55,8 +51,7 @@ let
               cargo-llvm-cov
             ]
           else
-            [ ]
-        );
+            [ ];
 
         # TODO: check if this is needed.
         doCheck = true;
@@ -66,9 +61,8 @@ let
 
           patchShebangs .
 
-          ./do ${
-            if check-coverage then "run-all-tests-with-coverage-with-percent-output" else "run-all-tests"
-          }
+
+          ./scripts/${if check-coverage then "helpers/test-and-check-for-full-coverage" else "test"}
 
           runHook postCheck
         '';
@@ -83,7 +77,6 @@ then
     scdoc,
     installShellFiles,
     lib,
-    es,
 
     rust-bin,
     jq,
@@ -96,7 +89,6 @@ else
     scdoc,
     installShellFiles,
     lib,
-    es,
 
     rustPlatform,
   }:

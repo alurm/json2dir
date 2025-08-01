@@ -35,8 +35,7 @@
         default = final: prev: {
           json2dir = final.callPackage (import ./. { check-coverage = false; }) { };
         };
-        dev = final: prev: {
-          json2dir = final.callPackage (import ./. { check-coverage = false; }) { };
+        dev = final: prev: self.overlays.default final prev // {
           json2dir-check-coverage = final.callPackage (import ./. { check-coverage = true; }) { };
         };
       };

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+./scripts/helpers/test-and-collect-coverage
+
+exec cargo llvm-cov report --ignore-filename-regex rust/library/std "$@"

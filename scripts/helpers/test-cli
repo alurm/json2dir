@@ -1,0 +1,24 @@
+#!/bin/sh
+
+fail() {
+	printf '%s\n' "Test failure: $1"
+	exit 1
+}
+
+[ -z "$MY_TEST_RUNNER" ] && {
+	printf '%s\n' 'Error: MY_TEST_RUNNER variable is not set'
+	exit 1
+}
+
+set -x
+
+output=$(echo {} | "$MY_TEST_RUNNER" --help 2>&1) && fail 'usage: got a zero exit code'
+printf '%s\n' "$output" | grep -qi usage || fail 'usage: expected usage help on stderr'
+
+echo {} | "$MY_TEST_RUNNER" || fail 'valid input: got a non-zero usage code'
+
+echo f | "$MY_TEST_RUNNER" && fail 'invalid JSON: got a zero exit code'
+
+printf '\777' | "$MY_TEST_RUNNER" && fail 'invalid UTF-8: got a zero exit code'
+
+true

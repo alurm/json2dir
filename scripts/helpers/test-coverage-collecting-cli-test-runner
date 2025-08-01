@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec cargo llvm-cov run --no-report --quiet -- "$@"

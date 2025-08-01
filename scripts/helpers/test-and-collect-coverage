@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cargo llvm-cov clean --workspace
+
+cargo llvm-cov --no-report --quiet -- --test-threads 1 1>&2
+
+MY_TEST_RUNNER=./scripts/helpers/test-coverage-collecting-cli-test-runner \
+exec ./scripts/helpers/test-cli
