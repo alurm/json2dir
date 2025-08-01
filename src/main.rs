@@ -26,8 +26,8 @@ impl PartialEq for Error {
 /// Tagged errors, useful for tests. PartialEq just checks the discriminant and not the payload.
 #[derive(Debug, Error)]
 enum Error {
-    #[error("the JSON is not an object")]
-    JsonIsNotObject,
+    #[error("expected provided JSON to be an object")]
+    InvalidTopJson,
 
     #[error("couldn't convert stdin to JSON")]
     CouldNotParseJson,
@@ -38,7 +38,7 @@ enum Error {
     #[error("the key {name:#?} under {context:#?} is a non-regular path component")]
     NotRegularComponent { name: String, context: PathBuf },
 
-    #[error("couldn't create a {kind} at path {context:#?}: {e:#?}")]
+    #[error("couldn't create a {kind} at {context:#?}: {e:#?}")]
     Create {
         e: io::Error,
         context: PathBuf,
@@ -51,17 +51,26 @@ enum Error {
     #[error("couldn't set the current dir {context:#?} to the dir above it: {e:#?}")]
     ChangeDirUp { context: PathBuf, e: io::Error },
 
+    #[error("couldn't make the script executable at {context:#?}: {e:#?}")]
+    CouldNotMakeFileExecutable { context: PathBuf, e: io::Error },
+
     #[cfg(not(unix))]
-    #[error("found a JSON value which isn't an object or a string at path {context:#?}")]
+    #[error("expected a JSON value to be an object or a string while at {context:#?}")]
     InvalidJsonPart { context: PathBuf },
 
     #[cfg(unix)]
-    #[error("found a JSON value which isn't an object, an array, or a string at path {context:#?}")]
+    #[error("expected a JSON value to be an object, an array, or a string while at {context:#?}")]
     InvalidJsonPart { context: PathBuf },
 
     #[cfg(unix)]
-    #[error("found a JSON array that doesn't contain a single string at path {context:#?}")]
-    NotSingleStringArray { context: PathBuf },
+    #[error("expected a JSON array to be of the form [type, payload] while at {context:#?}")]
+    InvalidJsonArray { context: PathBuf },
+
+    #[cfg(unix)]
+    #[error(
+        "expected a JSON array's first element to be either \"link\" or \"script\" while at {context:#?}"
+    )]
+    InvalidArrayKind { context: PathBuf },
 }
 
 #[derive(Default)]
@@ -79,6 +88,10 @@ enum Test {
     Default,
     #[cfg(unix)]
     CauseChangeDirUpError,
+    #[cfg(unix)]
+    RemoveScriptAfterCreation,
+    #[cfg(unix)]
+    RemoveScriptAfterGettingMode,
 }
 
 fn json_object_to_dir_rec(
@@ -115,17 +128,6 @@ fn json_object_to_dir_rec(
         let _ = fs::remove_file(&path_component);
 
         match value {
-            // Create a regular file.
-            json::Value::String(content) => {
-                if let Err(e) = fs::write(&path_component, content) {
-                    return Err(Error::Create {
-                        e,
-                        context: context.clone(),
-                        kind: "regular file",
-                    });
-                };
-            }
-
             // Create a directory.
             json::Value::Object(subdir) => {
                 if let Err(e) = fs::create_dir(&path_component) {
@@ -163,7 +165,7 @@ fn json_object_to_dir_rec(
                     file.set_permissions(perms).unwrap();
                 }
 
-                // TODO: consider using a queue instead of recursion to avoid stack overflows?
+                // TODO: use a queue instead of recursing to be safe against stack overflows?
                 json_object_to_dir_rec(context, subdir, _cfg)?;
 
                 if let Err(e) = env::set_current_dir(path::Component::ParentDir) {
@@ -174,23 +176,84 @@ fn json_object_to_dir_rec(
                 };
             }
 
-            // Create a symlink.
-            // FIXME: add documentation for this feature.
+            // Create a regular file.
+            json::Value::String(content) => {
+                if let Err(e) = fs::write(&path_component, content) {
+                    return Err(Error::Create {
+                        e,
+                        context: context.clone(),
+                        kind: "regular file",
+                    });
+                };
+            }
+
+            // Create a symlink or an executable file.
             #[cfg(unix)]
             json::Value::Array(vec) => match &vec[..] {
-                [json::Value::String(target)] => {
-                    use std::os::unix;
+                [json::Value::String(kind), json::Value::String(payload)] => match kind.as_str() {
+                    "script" => {
+                        if let Err(e) = fs::write(&path_component, payload) {
+                            return Err(Error::Create {
+                                e,
+                                context: context.clone(),
+                                kind: "script",
+                            });
+                        };
 
-                    if let Err(e) = unix::fs::symlink(target, &path_component) {
-                        return Err(Error::Create {
-                            e,
+                        #[cfg(test)]
+                        if let Test::RemoveScriptAfterCreation = _cfg.test {
+                            fs::remove_file(&path_component).unwrap();
+                        }
+
+                        use std::{
+                            fs::{metadata, set_permissions},
+                            os::unix::fs::{MetadataExt, PermissionsExt},
+                        };
+
+                        let mode = match metadata(&path_component) {
+                            Ok(meta) => meta.mode(),
+                            Err(e) => {
+                                return Err(Error::CouldNotMakeFileExecutable {
+                                    context: context.clone(),
+                                    e,
+                                });
+                            }
+                        };
+
+                        #[cfg(test)]
+                        if let Test::RemoveScriptAfterGettingMode = _cfg.test {
+                            fs::remove_file(&path_component).unwrap();
+                        }
+
+                        if let Err(e) =
+                            set_permissions(path_component, PermissionsExt::from_mode(mode | 0o111))
+                        {
+                            return Err(Error::CouldNotMakeFileExecutable {
+                                context: context.clone(),
+                                e,
+                            });
+                        }
+                    }
+
+                    "link" => {
+                        use std::os::unix;
+
+                        if let Err(e) = unix::fs::symlink(payload, &path_component) {
+                            return Err(Error::Create {
+                                e,
+                                context: context.clone(),
+                                kind: "symlink",
+                            });
+                        }
+                    }
+                    _ => {
+                        return Err(Error::InvalidArrayKind {
                             context: context.clone(),
-                            kind: "symlink",
                         });
-                    };
-                }
+                    }
+                },
                 _ => {
-                    return Err(Error::NotSingleStringArray {
+                    return Err(Error::InvalidJsonArray {
                         context: context.clone(),
                     });
                 }
@@ -227,7 +290,7 @@ fn parse_and_run(string: &str, cfg: &Cfg) -> Result {
     };
 
     let json::Value::Object(object) = json else {
-        return Err(Error::JsonIsNotObject);
+        return Err(Error::InvalidTopJson);
     };
 
     json_object_to_dir(object, cfg)
@@ -279,6 +342,7 @@ mod tests {
             Default,
             MakeFooToBarSymlink,
             MakeUnexecutableDir,
+            MakeDir,
         }
 
         #[derive(Debug)]
@@ -323,7 +387,7 @@ mod tests {
                 ..Test::new(r#"{"..": ""}"#)
             },
             Test {
-                result: Err(Error::NotSingleStringArray { context: "".into() }),
+                result: Err(Error::InvalidJsonArray { context: "".into() }),
                 ..Test::new(r#"{"foo": [1, 2, 3]}"#)
             },
             Test {
@@ -339,7 +403,7 @@ mod tests {
                 ..Test::new(r#"{"foo": {}}"#)
             },
             Test {
-                ..Test::new(r#"{"foo": ["bar"]}"#)
+                ..Test::new(r#"{"foo": ["link", "bar"]}"#)
             },
             Test {
                 result: Err(Error::Create {
@@ -347,8 +411,25 @@ mod tests {
                     context: "".into(),
                     kind: "",
                 }),
-                ..Test::new(r#"{"foo": [""]}"#)
+                environment: Environment::MakeDir,
+                ..Test::new(r#"{"foo": ["script", "Hello"]}"#)
             },
+            Test {
+                ..Test::new(r#"{"foo": ["script", ""]}"#)
+            },
+            Test {
+                result: Err(Error::Create {
+                    e: make_dummy_io_error(),
+                    context: "".into(),
+                    kind: "",
+                }),
+                ..Test::new(r#"{"foo": ["link", ""]}"#)
+            },
+            Test {
+                result: Err(Error::InvalidArrayKind { context: "".into() }),
+                ..Test::new(r#"{"foo": ["linksym", ""]}"#)
+            },
+            // These have actions.
             Test {
                 result: Err(Error::ChangeDirUp {
                     e: make_dummy_io_error(),
@@ -356,6 +437,22 @@ mod tests {
                 }),
                 action: crate::Test::CauseChangeDirUpError,
                 ..Test::new(r#"{"foo": {}}"#)
+            },
+            Test {
+                result: Err(Error::CouldNotMakeFileExecutable {
+                    context: "".into(),
+                    e: make_dummy_io_error(),
+                }),
+                action: crate::Test::RemoveScriptAfterCreation,
+                ..Test::new(r#"{"foo": ["script", ""]}"#)
+            },
+            Test {
+                result: Err(Error::CouldNotMakeFileExecutable {
+                    context: "".into(),
+                    e: make_dummy_io_error(),
+                }),
+                action: crate::Test::RemoveScriptAfterGettingMode,
+                ..Test::new(r#"{"foo": ["script", ""]}"#)
             },
         ];
 
@@ -370,6 +467,7 @@ mod tests {
             match test.environment {
                 Environment::Default => {}
                 Environment::MakeFooToBarSymlink => unix::fs::symlink("bar", "foo").unwrap(),
+                Environment::MakeDir => fs::create_dir("foo").unwrap(),
                 Environment::MakeUnexecutableDir => {
                     use std::{fs::set_permissions, os::unix::fs::PermissionsExt};
 
@@ -418,7 +516,7 @@ mod tests {
 
         let tests = [
             Test {
-                result: Err(Error::JsonIsNotObject),
+                result: Err(Error::InvalidTopJson),
                 ..Test::new("3")
             },
             Test {
