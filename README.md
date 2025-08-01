@@ -3,7 +3,7 @@
 # A json2dir converter in Rust and a poor man's home-manager alternative in Nix
 
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
-![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/full-region-coverage.yaml/badge.svg)
+![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-full-region-coverage.yaml/badge.svg)
 
 ## The json2dir
 
