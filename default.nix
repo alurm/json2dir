@@ -53,9 +53,6 @@ let
           else
             [ ];
 
-        # TODO: check if this is needed.
-        doCheck = true;
-
         checkPhase = ''
           runHook preCheck
 
@@ -77,6 +74,7 @@ then
     scdoc,
     installShellFiles,
     lib,
+    coreutils,
 
     rust-bin,
     jq,
@@ -89,6 +87,7 @@ else
     scdoc,
     installShellFiles,
     lib,
+    coreutils,
 
     rustPlatform,
   }:

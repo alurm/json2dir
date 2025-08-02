@@ -417,14 +417,6 @@ mod tests {
                 ..Test::new(r#"{"foo": ["script", ""]}"#)
             },
             Test {
-                result: Err(Error::Create {
-                    e: make_dummy_io_error(),
-                    context: "".into(),
-                    kind: "",
-                }),
-                ..Test::new(r#"{"foo": ["link", ""]}"#)
-            },
-            Test {
                 result: Err(Error::InvalidArrayKind { context: "".into() }),
                 ..Test::new(r#"{"foo": ["linksym", ""]}"#)
             },
@@ -452,6 +444,17 @@ mod tests {
                 }),
                 action: crate::Test::RemoveScriptAfterGettingMode,
                 ..Test::new(r#"{"foo": ["script", ""]}"#)
+            },
+            // These are Linux only.
+            // On MacOS, creating an symlink that points nowhere is not an error.
+            #[cfg(target_os = "linux")]
+            Test {
+                result: Err(Error::Create {
+                    e: make_dummy_io_error(),
+                    context: "".into(),
+                    kind: "",
+                }),
+                ..Test::new(r#"{"foo": ["link", ""]}"#)
             },
         ];
 
