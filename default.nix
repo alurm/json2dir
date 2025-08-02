@@ -1,4 +1,7 @@
-{ check-coverage }:
+{
+  check-coverage,
+  report ? false,
+}:
 let
   impl =
     args@{
@@ -43,7 +46,7 @@ let
           description = "Program to convert JSON expressions to directory trees";
         };
 
-        nativeCheckInputs =
+        nativeCheckInputs = (
           if check-coverage then
             with args;
             [
@@ -51,15 +54,23 @@ let
               cargo-llvm-cov
             ]
           else
-            [ ];
+            [ ]
+        );
 
         checkPhase = ''
           runHook preCheck
 
-          patchShebangs .
-
-
-          ./scripts/${if check-coverage then "helpers/test-and-check-for-full-coverage" else "test"}
+          ${
+            if check-coverage then
+              (
+                if report then
+                  "./scripts/test-and-collect-coverage --html --output-dir $out"
+                else
+                  "./scripts/helpers/test-and-check-for-full-coverage"
+              )
+            else
+              "./scripts/test"
+          }
 
           runHook postCheck
         '';
@@ -74,7 +85,6 @@ then
     scdoc,
     installShellFiles,
     lib,
-    coreutils,
 
     rust-bin,
     jq,
@@ -87,7 +97,6 @@ else
     scdoc,
     installShellFiles,
     lib,
-    coreutils,
 
     rustPlatform,
   }:

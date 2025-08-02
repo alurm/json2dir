@@ -20,13 +20,10 @@
         };
       in
       {
-        packages = {
-          default = pkgs.json2dir;
-          check-coverage = pkgs.json2dir-check-coverage;
-        };
+        packages = pkgs.json2dir;
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ pkgs.json2dir-check-coverage ];
+          inputsFrom = [ pkgs.json2dir.check-for-full-coverage ];
         };
       }
     )
@@ -35,8 +32,12 @@
         default = final: prev: {
           json2dir = final.callPackage (import ./. { check-coverage = false; }) { };
         };
-        dev = final: prev: self.overlays.default final prev // {
-          json2dir-check-coverage = final.callPackage (import ./. { check-coverage = true; }) { };
+        dev = final: prev: {
+          json2dir = {
+            default = final.callPackage (import ./. { check-coverage = false; }) { };
+            check-for-full-coverage = final.callPackage (import ./. { check-coverage = true; }) { };
+            report-coverage = final.callPackage (import ./. { check-coverage = true; report = true; }) { };
+          };
         };
       };
     };

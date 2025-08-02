@@ -19,6 +19,6 @@ echo {} | "$MY_TEST_RUNNER" || fail 'valid input: got a non-zero usage code'
 
 echo f | "$MY_TEST_RUNNER" && fail 'invalid JSON: got a zero exit code'
 
-printf '\777' | "$MY_TEST_RUNNER" && fail 'invalid UTF-8: got a zero exit code'
+printf '\377' | "$MY_TEST_RUNNER" && fail 'invalid UTF-8: got a zero exit code'
 
 true
