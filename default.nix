@@ -3,7 +3,7 @@
   report ? false,
 }:
 let
-  impl =
+  function =
     args@{
       scdoc,
       installShellFiles,
@@ -75,29 +75,22 @@ let
           runHook postCheck
         '';
       };
+  args = builtins.functionArgs function;
+  toArgs = builtins.foldl' (old: new: old // { ${new} = false; }) { };
 in
-if
-  check-coverage
-
-# TODO: remove duplication.
-then
-  args@{
-    scdoc,
-    installShellFiles,
-    lib,
-
-    rust-bin,
-    jq,
-    cargo-llvm-cov,
-    makeRustPlatform,
-  }:
-  impl args
-else
-  args@{
-    scdoc,
-    installShellFiles,
-    lib,
-
-    rustPlatform,
-  }:
-  impl args
+{
+  __functor = _: function;
+  __functionArgs =
+    args
+    // toArgs (
+      if check-coverage then
+        [
+          "rust-bin"
+          "jq"
+          "cargo-llvm-cov"
+          "makeRustPlatform"
+        ]
+      else
+        [ "rustPlatform" ]
+    );
+}
