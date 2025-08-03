@@ -1,44 +1,45 @@
-# TODO: finish/rework this.
-
-# A json2dir converter in Rust and a poor man's home-manager alternative in Nix
+# `json2dir`: a tool that converts JSON objects to directory trees
 
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
 ![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-for-full-region-coverage.yaml/badge.svg)
 
-## The json2dir
-
-An example:
+TL;DR:
 
 ```sh
 printf '%s' '{
-  "file": "Hello, world!\n",
+  "file": "Hello, world!",
   "dir": {
     "subfile": "Content.\n",
     "subdir": {}
-  }
+  },
+  "symlink": ["link", "target path"],
+  "script": ["script", "#!/bin/sh\necho Howdy!"]
 }' | json2dir
 ```
 
-## The config management part
+Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
 
-`json2dir` when combined with `nix profile` can be used as a poor man's home-manager alternative: `nix profile` can manage your packages, while `json2dir` can manage your `~/.config`.
+# Input schema
 
-TODO: finish this.
+- Objects represent directories.
+- Strings represent contents of files.
+- Arrays are used to represent symlinks and executable files.
+- Arrays of the form `["link", target]` represent symlinks, second element representing the target of the symlink.
+- Arrays of the form `["script", content]` represent executable files, second representing the content of the script.
 
-Here's an sample activation script which you can add to your profile:
+# Caveats
 
-```nix
-(pkgs.writeShellScriptBin "update-config" ''
-  set -x
-  cd ~/path/to/your/profile/flake || exit 1
-  # TODO: finish this.
-'')
-```
+Regular JSON constraints apply. In particular, the input must be UTF-8. Currently, there's no way to represent files containing non-UTF-8 content.
 
-## Building
+# Development
 
-Run `cargo build` or `nix build`.
+To build the project, run `cargo build` or `nix build`. If you're using `rustup`, `rust-toolchain.toml` is provided.
 
-## Contributing
+Useful scripts may be found in the `scripts` folder.
 
-Feel free to fork/open issues/submit PRs. I don't guarantee PRs will be accepted though.
+Feel free to fork/open issues/submit PRs/etc.
+
+# Users
+
+- [nix2dir](https://github.com/alurm/nix2dir) uses this project in order to convert Nix expressions to directory trees (not released yet).
+

@@ -34,7 +34,6 @@ let
           installShellFiles
         ];
 
-        # TODO: update the man page.
         postInstall = ''
           scdoc < ./json2dir.1.scd > json2dir.1
           installManPage json2dir.1

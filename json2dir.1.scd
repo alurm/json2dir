@@ -2,41 +2,43 @@ json2dir(1)
 
 # NAME
 
-
-json2dir — a tool to convert JSON to a directory
+json2dir — convert JSON objects to directory trees
 
 # SYNOPSIS
 
-*json2dir* < file.json_
+*json2dir* < _file.json_
 
-# DESCRIPTION
+# INPUT SCHEMA
 
-TODO: dedup?
-The json2dir tool recursively converts a JSON object given to stdin to a directory structure.
-
-Files and directories will be made in the directory where the tool is launched.
-
-Object keys map to directory names. String values map to file contents.
+- Objects represent directories.
+- Strings represent contents of files.
+- Arrays are used to represent symlinks and executable files.
+- Arrays of the form `["link", target]` represent symlinks, second element representing the target of the symlink.
+- Arrays of the form `["script", content]` represent executable files, second representing the content of the script.
 
 # BUGS
 
-Currently, symlinks can't be represented and files' contents must be valid JSON strings.
+Regular JSON constraints apply. In particular, the input must be UTF-8. Currently, there's no way to represent files containing non-UTF-8 content.
 
 # EXAMPLES
 
 ```
 printf '%s' '{
-  "file": "Hello, world!\n",
+  "file": "Hello, world!",
   "dir": {
-    "subfile": "Content.\n",
+    "subfile": "Content.\\n",
     "subdir": {}
-  }
+  },
+  "symlink": ["link", "target path"],
+  "script": ["script", "#!/bin/sh\\necho Howdy!"]
 }' | json2dir
 ```
 
+Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
+
 # SEE ALSO
 
-*jq*(1)
+*jq*(1), *nix2dir*(1)
 
 # AUTHORS
 
