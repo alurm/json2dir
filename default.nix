@@ -27,7 +27,7 @@ let
         version = "0.1.0";
         src = ./.;
 
-        cargoHash = "sha256-v+pbMlrcz1Cx3j8swYRkjEwSY2wv0047DScb/f8YxgI=";
+        cargoHash = "sha256-EJ4yR/PXRW1dyC3ejjknC7sEJFedV6YRfC7DvFMUBIU=";
 
         nativeBuildInputs = [
           scdoc

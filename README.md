@@ -1,12 +1,14 @@
-# `json2dir`: a tool that converts JSON objects to directory trees, suitable as a minimalistic home-manager alternative
+# `json2dir`: a tool that converts JSON objects to directory trees, an alternative to home-manager
 
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
 ![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-for-full-region-coverage.yaml/badge.svg)
 
 TL;DR:
 
-```sh
-printf '%s' '{
+`file.json`:
+
+```json
+{
   "file": "Hello, world!",
   "dir": {
     "subfile": "Content.\n",
@@ -14,7 +16,11 @@ printf '%s' '{
   },
   "symlink": ["link", "target path"],
   "script": ["script", "#!/bin/sh\necho Howdy!"]
-}' | json2dir
+}
+```
+
+```sh
+cat file.json | json2dir
 ```
 
 Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
@@ -35,6 +41,10 @@ Regular JSON constraints apply. In particular, the input must be UTF-8. Currentl
 
 When using this utility to create files for other users, care must be taken in order to prevent TOCTOU (time of check, time of use) attacks (e.g. with symlinks).
 
+# Packaging
+
+`flake.nix` contains a Nix package for `json2dir`.
+
 # Development
 
 To build the project, run `cargo build` or `nix build`. If you're using `rustup`, `rust-toolchain.toml` is provided.
@@ -44,8 +54,3 @@ Useful scripts may be found in the `scripts` folder.
 A Nix cache is available at https://json2dir.cachix.org.
 
 Feel free to fork/open issues/submit PRs/etc.
-
-# Users
-
-- [nix2dir](https://github.com/alurm/nix2dir) uses this project in order to convert Nix expressions to directory trees (not released yet).
-
