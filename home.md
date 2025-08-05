@@ -100,6 +100,10 @@ Later, you can use `nix profile upgrade $profile_flake_name` to upgrade your pac
 
 You mind find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable/#sec-generators) useful for generating configuration files of a specific format.
 
+## More elaborate configs
+
+- https://github.com/alurm/infra/blob/main/42-yerevan/flake.nix
+
 ## Caveats
 
 Old files will not be deleted automatically.
