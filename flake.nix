@@ -36,9 +36,17 @@
           json2dir = {
             default = final.callPackage (import ./. { check-coverage = false; }) { };
             check-for-full-coverage = final.callPackage (import ./. { check-coverage = true; }) { };
-            report-coverage = final.callPackage (import ./. { check-coverage = true; report = true; }) { };
+            report-coverage = final.callPackage (import ./. {
+              check-coverage = true;
+              report = true;
+            }) { };
           };
         };
+      };
+
+      nixConfig = {
+        extra-substituters = [ "https://json2dir.cachix.org" ];
+        extra-trusted-public-keys = [ "json2dir.cachix.org-1:kGit6Ar45Bu+1ivmgMpNSaBBNm8TRQ14WXE0gSIGpHo=" ];
       };
     };
 }

@@ -41,6 +41,8 @@ Useful scripts may be found in the `scripts` folder.
 
 Feel free to fork/open issues/submit PRs/etc.
 
+A Nix cache is available at https://json2dir.cachix.org.
+
 # Users
 
 - [nix2dir](https://github.com/alurm/nix2dir) uses this project in order to convert Nix expressions to directory trees (not released yet).
