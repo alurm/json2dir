@@ -40,6 +40,7 @@
               check-coverage = true;
               report = true;
             }) { };
+            static = final.pkgsStatic.callPackage (import ./. { check-coverage = false; }) { };
           };
         };
       };
