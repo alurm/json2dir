@@ -20,7 +20,12 @@
         };
       in
       {
-        packages = pkgs.json2dir;
+        packages = pkgs.json2dir
+        # # Not sure how useful this is.
+        # // {
+        #   cross = pkgs.pkgsCross;
+        # };
+        ;
 
         devShells.default = pkgs.mkShell {
           inputsFrom = [ pkgs.json2dir.check-for-full-coverage ];
@@ -47,7 +52,9 @@
 
       nixConfig = {
         extra-substituters = [ "https://json2dir.cachix.org" ];
-        extra-trusted-public-keys = [ "json2dir.cachix.org-1:kGit6Ar45Bu+1ivmgMpNSaBBNm8TRQ14WXE0gSIGpHo=" ];
+        extra-trusted-public-keys = [
+          "json2dir.cachix.org-1:kGit6Ar45Bu+1ivmgMpNSaBBNm8TRQ14WXE0gSIGpHo="
+        ];
       };
     };
 }
