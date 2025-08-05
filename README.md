@@ -31,6 +31,8 @@ Here, four files will be added to the current directory: `file`, `dir`, `symlink
 
 Regular JSON constraints apply. In particular, the input must be UTF-8. Currently, there's no way to represent files containing non-UTF-8 content.
 
+When using this utility to create files for other users, care must be taken in order to prevent TOCTOU (time of check, time of use) attacks (e.g. with symlinks).
+
 # Development
 
 To build the project, run `cargo build` or `nix build`. If you're using `rustup`, `rust-toolchain.toml` is provided.
