@@ -1,4 +1,4 @@
-# `json2dir`: a tool that converts JSON objects to directory trees
+# `json2dir`: a tool that converts JSON objects to directory trees, suitable as a minimalistic home-manager alternative
 
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
 ![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-for-full-region-coverage.yaml/badge.svg)
@@ -18,6 +18,8 @@ printf '%s' '{
 ```
 
 Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
+
+[Using `json2dir` as a `home-manager` alternative](./home.md).
 
 # Input schema
 
@@ -39,9 +41,9 @@ To build the project, run `cargo build` or `nix build`. If you're using `rustup`
 
 Useful scripts may be found in the `scripts` folder.
 
-Feel free to fork/open issues/submit PRs/etc.
-
 A Nix cache is available at https://json2dir.cachix.org.
+
+Feel free to fork/open issues/submit PRs/etc.
 
 # Users
 
