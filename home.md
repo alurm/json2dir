@@ -2,6 +2,8 @@
 
 You can use `json2dir` to generate your dotfiles and use `nix profile` to manage your packages.
 
+> Side note: you may with to use [Nixsa](https://github.com/noamraph/nixsa) or a similar solution to use Nix without root.
+
 ## Getting started
 
 Here's a sample single-file `flake.nix` to get started (note: you don't have to use flakes):
