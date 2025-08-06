@@ -2,6 +2,12 @@
 name = "json2dir"
 version = "0.1.0"
 edition = "2024"
+authors = ["Alan Urmancheev"]
+description = "Tool that converts JSON objects to directory trees"
+repository = "https://github.com/alurm/json2dir"
+license = "MIT"
+categories = ["command-line-utilities", "config", "encoding", "filesystem", "template-engine"]
+keywords = ["json"]
 
 [dependencies]
 serde_json = "1.0.141"
