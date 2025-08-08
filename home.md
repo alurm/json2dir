@@ -1,4 +1,4 @@
-# Using `json2dir` as a [`home-manager`](https://github.com/nix-community/home-manager) alternative
+# Using `json2dir` as a [`home-manager`](https://github.com/nix-community/home-manager) alternative for managing dotfiles
 
 You can use `json2dir` to generate your dotfiles and use `nix profile` to manage your packages.
 
@@ -122,3 +122,5 @@ You mind find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable
 Old files will not be deleted automatically.
 
 Files created by `json2dir` are mutable. This allows for avoiding Nix builds, therefore making updating files fast, and allows for quickly changing files temporarily, but is not declarative.
+
+This solution doesn't replace all of functionality of `home-manager`, only the dotfiles management part.
