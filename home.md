@@ -117,6 +117,8 @@ You mind find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable
 
 - https://github.com/alurm/infra/blob/main/42-yerevan/flake.nix
 
+Note that you don't have to put everything inside of one big Nix file, of course. For config files requiring no templating, `builtins.readFile` (or some kind of wrapper around it) may be helpful.
+
 ## Caveats
 
 Old files will not be deleted automatically.
