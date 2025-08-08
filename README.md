@@ -1,4 +1,4 @@
-# `json2dir`: a tool that converts JSON objects to directory trees, an alternative to home-manager
+# `json2dir`: a tool that converts JSON objects to directory trees, a fast alternative to home-manager
 
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
 ![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-for-full-region-coverage.yaml/badge.svg)
