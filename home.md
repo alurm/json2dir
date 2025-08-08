@@ -100,6 +100,15 @@ nix eval --json .#home | (cd ~ && json2dir)
 
 Later, you can use `nix profile upgrade $profile_flake_name` to upgrade your packages (this doesn't update your dotfiles, you need to use a helper script or do that separately).
 
+After you have installed this profile (and added it to your `PATH`, which is not discussed here), now you can use the `apply-my-dotfiles` helper (defined via `pkgs.writeShellScriptBin` above) to quickly update your dotfiles. Here's an example run:
+
+```sh
+$ time apply-my-dotfiles
+real	0m0.069s
+user	0m0.060s
+sys	0m0.009s
+```
+
 You mind find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable/#sec-generators) useful for generating configuration files of a specific format.
 
 ## More elaborate configs
