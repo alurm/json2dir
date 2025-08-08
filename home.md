@@ -1,6 +1,8 @@
-# Using `json2dir` as a [`home-manager`](https://github.com/nix-community/home-manager) alternative
+# Using `json2dir` as a [`home-manager`](https://github.com/nix-community/home-manager) alternative for managing dotfiles
 
 You can use `json2dir` to generate your dotfiles and use `nix profile` to manage your packages.
+
+The idea here is to use Nix to generate the JSON representing your dotfiles and pass that JSON to `json2dir`. Since the Nix builder is not involved, that is fast.
 
 > Side note: you may with to use [Nixsa](https://github.com/noamraph/nixsa) or a similar solution to use Nix without root.
 
@@ -100,14 +102,27 @@ nix eval --json .#home | (cd ~ && json2dir)
 
 Later, you can use `nix profile upgrade $profile_flake_name` to upgrade your packages (this doesn't update your dotfiles, you need to use a helper script or do that separately).
 
+After you have installed this profile (and added it to your `PATH`, which is not discussed here), now you can use the `apply-my-dotfiles` helper (defined via `pkgs.writeShellScriptBin` above) to quickly update your dotfiles. Here's an example run:
+
+```sh
+$ time apply-my-dotfiles
+real	0m0.069s
+user	0m0.060s
+sys	0m0.009s
+```
+
 You mind find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable/#sec-generators) useful for generating configuration files of a specific format.
 
 ## More elaborate configs
 
 - https://github.com/alurm/infra/blob/main/42-yerevan/flake.nix
 
+Note that you don't have to put everything inside of one big Nix file, of course. For config files requiring no templating, `builtins.readFile` (or some kind of wrapper around it) may be helpful.
+
 ## Caveats
 
 Old files will not be deleted automatically.
 
 Files created by `json2dir` are mutable. This allows for avoiding Nix builds, therefore making updating files fast, and allows for quickly changing files temporarily, but is not declarative.
+
+This solution doesn't replace all of functionality of `home-manager`, only the dotfiles management part.

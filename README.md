@@ -1,4 +1,4 @@
-# `json2dir`: a tool that converts JSON objects to directory trees, an alternative to home-manager
+# `json2dir`: a JSON-to-directory converter, a fast alternative to home-manager for managing dotfiles
 
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
 ![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-for-full-region-coverage.yaml/badge.svg)
@@ -25,7 +25,11 @@ cat file.json | json2dir
 
 Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
 
-[Using `json2dir` as a `home-manager` alternative](./home.md).
+# Using `json2dir` as a `home-manager` alternative for managing dotfiles
+
+One way to use this tool is in conjunction with Nix to generate the JSON describing the wanted dotfiles. Look at [home.md](home.md) for details.
+
+Note that using Nix is not a requirement. You can also use JSON directly, generate it with Cue, or do something totally different. Possibilities are endless!
 
 # Input schema
 
