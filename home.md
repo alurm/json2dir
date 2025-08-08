@@ -2,6 +2,8 @@
 
 You can use `json2dir` to generate your dotfiles and use `nix profile` to manage your packages.
 
+The idea here is to use Nix to generate the JSON representing your dotfiles and pass that JSON to `json2dir`. Since the Nix builder is not involved, that is fast.
+
 > Side note: you may with to use [Nixsa](https://github.com/noamraph/nixsa) or a similar solution to use Nix without root.
 
 ## Getting started
