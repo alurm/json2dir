@@ -40,7 +40,7 @@ Here, four files will be added to the current directory: `file`, `dir`, `symlink
 
 # SEE ALSO
 
-*jq*(1), *nix2dir*(1)
+*jq*(1)
 
 # AUTHORS
 
