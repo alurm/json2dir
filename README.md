@@ -25,7 +25,9 @@ cat file.json | json2dir
 
 Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
 
-[Using `json2dir` as a `home-manager` alternative](./home.md).
+# Using `json2dir` as a `home-manager` alternative for managing dotfiles
+
+One way to use this tool is in conjunction with Nix to generate the JSON describing our dotfiles. Look at [home.md](home.md) for details.
 
 # Input schema
 
