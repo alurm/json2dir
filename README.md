@@ -27,7 +27,9 @@ Here, four files will be added to the current directory: `file`, `dir`, `symlink
 
 # Using `json2dir` as a `home-manager` alternative for managing dotfiles
 
-One way to use this tool is in conjunction with Nix to generate the JSON describing our dotfiles. Look at [home.md](home.md) for details.
+One way to use this tool is in conjunction with Nix to generate the JSON describing the wanted dotfiles. Look at [home.md](home.md) for details.
+
+Note that using Nix is not a requirement. You can also use JSON directly, generate it with Cue, or do something totally different. Possibilities are endless!
 
 # Input schema
 
