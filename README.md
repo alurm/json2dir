@@ -5,7 +5,7 @@
 
 TL;DR:
 
-`file.json`:
+`example-tree.json`:
 
 ```json
 {
@@ -20,7 +20,7 @@ TL;DR:
 ```
 
 ```sh
-cat file.json | json2dir
+cat example-tree.json | json2dir
 ```
 
 Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
