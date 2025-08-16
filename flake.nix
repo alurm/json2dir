@@ -28,7 +28,11 @@
         ;
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ pkgs.json2dir.check-for-full-coverage ];
+          inputsFrom = [
+            (
+              if system != "aarch64-darwin" then pkgs.json2dir.check-for-full-coverage else pkgs.json2dir.default
+            )
+          ];
         };
       }
     )
