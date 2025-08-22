@@ -28,12 +28,24 @@
         ;
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [
-            (
-              if system != "aarch64-darwin" then pkgs.json2dir.check-for-full-coverage else pkgs.json2dir.default
-            )
-          ];
+          packages = with pkgs; [
+            jq
+            scdoc
+            (rust-bin.fromRustupToolchainFile ./rust-toolchain.toml)
+          ] ++ (
+            if system != "aarch64-darwin" then [ cargo-llvm-cov ] else [ ]
+          );
         };
+
+        # This can be brought back once cargo-llvm-cov works on MacOS.
+        # devShells.default = pkgs.mkShell {
+        #   inputsFrom = [
+        #     (
+        #       # pkgs.json2dir.check-for-full-coverage
+        #       if system != "aarch64-darwin" then pkgs.json2dir.check-for-full-coverage else pkgs.json2dir.default
+        #     )
+        #   ];
+        # };
       }
     )
     // {
