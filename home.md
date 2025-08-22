@@ -2,18 +2,22 @@
 
 You can use `json2dir` to generate your dotfiles and use `nix profile` to manage your packages.
 
-The idea here is to use Nix to generate the JSON representing your dotfiles and pass that JSON to `json2dir`. Since the Nix builder is not involved, that is fast.
+The idea here is to use `nix eval --json` to generate the JSON representing your dotfiles (or, in general, parts of your home directory) and pass it to `json2dir`. Since the Nix builder is not involved, this is fast.
 
-> Side note: you may with to use [Nixsa](https://github.com/noamraph/nixsa) or a similar solution to use Nix without root.
+> You may wish to use [Nixsa](https://github.com/noamraph/nixsa) or a similar solution to use Nix without root.
+
+> You don't have to use this tool in conjunction with Nix! You can also use JSON directly, generate it from YAML or Cue, or do something different.
 
 ## Getting started
 
-Here's a sample single-file `flake.nix` to get started (note: you don't have to use flakes):
+Here's a sample single-file `flake.nix` to get you started:
 
 ```nix
 {
+  inputs.json2dir.url = "github:alurm/json2dir";
+  
   outputs =
-    { nixpkgs, flake-utils, ... }:
+    { nixpkgs, flake-utils, json2dir, ... }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -31,20 +35,12 @@ Here's a sample single-file `flake.nix` to get started (note: you don't have to 
             fish
             direnv
 
-            # These scripts help to update the profile and dotfiles.
-            # You need to replace $variables, if you want to use them.
+            # ...
 
-            (writeShellScriptBin "apply-my-profile-and-dotfiles" ''
-              # Replace $profile_flake_name to have the name of this flake.
-              nix profile upgrade $profile_flake_name || exit 1
-              apply-my-dotfiles || exit 1
-            '')
-
-            # This operation is typically much faster than applying the profile.
-            (writeShellScriptBin "apply-my-dotfiles" ''
-              cd || exit 1
-              # Replace $profile_flake_path to point to your flake.
-              nix eval $profile_flake_path#home --json | json2dir || exit 1
+            # Replace $path_to_this_flake with the path to the directory of the flake.
+            (writeShellScriptBin "nix2home" ''
+              cd ~ || exit 1
+              nix eval $path_to_this_flake#home --json | ${json2dir.packages.${system}.default}/bin/json2dir || exit 1
             '')
           ];
         };
@@ -88,34 +84,30 @@ Here's a sample single-file `flake.nix` to get started (note: you don't have to 
 }
 ```
 
-Note that if you want to try out this example, you need to update `$profile_flake_path` to point to your flake.
+Note that if you want to try out this example, you need to update `$path_to_this_flake` to point to your flake.
 
-To apply this configuration, two actions need to be performed:
+To apply this configuration, you need to install the profile:
 
-```sh
-# Install the profile (done only once).
-nix profile install $profile_flake_path
-
-# Apply the dotfiles.
-nix eval --json .#home | (cd ~ && json2dir)
+```
+nix profile add .
 ```
 
-Later, you can use `nix profile upgrade $profile_flake_name` to upgrade your packages (this doesn't update your dotfiles, you need to use a helper script or do that separately).
+Later, this profile can be upgraded with `nix profile upgrade <name>`, where `<name>` is the name of the profile you just added (you can discover it by running `nix profile list`).
 
-After you have installed this profile (and added it to your `PATH`, which is not discussed here), now you can use the `apply-my-dotfiles` helper (defined via `pkgs.writeShellScriptBin` above) to quickly update your dotfiles. Here's an example run:
+After you have installed this profile (and added it to your `PATH`), now you can use the `nix2home` helper (defined via `writeShellScriptBin` above) to quickly update your dotfiles. Here's an example run:
 
 ```sh
-$ time apply-my-dotfiles
+$ time nix2home
 real	0m0.069s
 user	0m0.060s
 sys	0m0.009s
 ```
 
-You mind find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable/#sec-generators) useful for generating configuration files of a specific format.
+You might find [`nixpkgs.lib.generators`](https://nixos.org/manual/nixpkgs/stable/#sec-generators) useful for generating configuration files of a specific format.
 
 ## More elaborate configs
 
-- https://github.com/alurm/infra/blob/main/42-yerevan/flake.nix
+- <https://github.com/alurm/infra/tree/main/mac/flake.nix>
 
 Note that you don't have to put everything inside of one big Nix file, of course. For config files requiring no templating, `builtins.readFile` (or some kind of wrapper around it) may be helpful.
 

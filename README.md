@@ -3,6 +3,8 @@
 ![Build](https://github.com/alurm/json2dir/actions/workflows/build.yaml/badge.svg)
 ![100% region coverage](https://github.com/alurm/json2dir/actions/workflows/check-for-full-region-coverage.yaml/badge.svg)
 
+`json2dir` specifies a subset of JSON suitable for describing directory trees and provides a tool to instantiate such descriptions.
+
 TL;DR:
 
 `example-tree.json`:
@@ -23,15 +25,18 @@ TL;DR:
 cat example-tree.json | json2dir
 ```
 
-Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
+Here, four files will be added to the current directory:
 
-# Using `json2dir` as a `home-manager` alternative for managing dotfiles
+- `file`: a file with the text `Hello, world!`,
+- `dir`: a directory with two entries in it,
+- `symlink`: a symbolic link pointing to `target path`,
+- `script`: an executable shell script that prints `Howdy!` when run.
 
-One way to use this tool is in conjunction with Nix to generate the JSON describing the wanted dotfiles. Look at [home.md](home.md) for details.
+## Use cases
 
-Note that using Nix is not a requirement. You can also use JSON directly, generate it with Cue, or do something totally different. Possibilities are endless!
+- [Using `json2dir` with Nix as a `home-manager` alternative for managing dotfiles](./home.md)
 
-# Input schema
+## Input schema
 
 - Objects represent directories.
 - Strings represent contents of files.
@@ -39,22 +44,22 @@ Note that using Nix is not a requirement. You can also use JSON directly, genera
 - Arrays of the form `["link", target]` represent symlinks, second element representing the target of the symlink.
 - Arrays of the form `["script", content]` represent executable files, second representing the content of the script.
 
-# Caveats
+## Caveats
 
 Regular JSON constraints apply. In particular, the input must be UTF-8. Currently, there's no way to represent files containing non-UTF-8 content.
 
 When using this utility to create files for other users, care must be taken in order to prevent TOCTOU (time of check, time of use) attacks (e.g. with symlinks).
 
-# Packaging
+## Packaging
 
-`flake.nix` contains a Nix package for `json2dir`.
+[flake.nix](flake.nix) contains a Nix package for `json2dir`.
 
-# Development
+## Development
 
 To build the project, run `cargo build` or `nix build`. If you're using `rustup`, `rust-toolchain.toml` is provided.
 
 Useful scripts may be found in the `scripts` folder.
 
-A Nix cache is available at https://json2dir.cachix.org.
+A Nix cache is available at <https://json2dir.cachix.org>.
 
 Feel free to fork/open issues/submit PRs/etc.
