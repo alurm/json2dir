@@ -1,3 +1,4 @@
+/// TODO: figure out if std::fs can be used in a way that would protect against TOCTOU reliably.
 use serde_json as json;
 use std::{
     env::{self, args},
