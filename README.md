@@ -34,7 +34,7 @@ Here, four files will be added to the current directory:
 
 ## Use cases
 
-- [Using `json2dir` with Nix as a `home-manager` alternative for managing dotfiles](./home.md)
+- [Using `json2dir` with Nix as a `home-manager` alternative for managing dotfiles](./docs/home.md)
 
 ## Input schema
 
