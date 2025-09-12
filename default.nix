@@ -37,7 +37,7 @@ let
         ];
 
         postInstall = ''
-          scdoc < ./json2dir.1.scd > json2dir.1
+          scdoc < ./docs/json2dir.1.scd > json2dir.1
           installManPage json2dir.1
         '';
 
