@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec cargo run --quiet -- "$@"
+exec cargo run --bin json2dir --quiet -- "$@"
