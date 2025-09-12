@@ -7,7 +7,7 @@
 
 TL;DR:
 
-`example-tree.json`:
+Assume the following file `example-tree.json`:
 
 ```json
 {
