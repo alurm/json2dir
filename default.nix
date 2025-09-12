@@ -21,7 +21,9 @@ let
         }
       else
         args.rustPlatform
-    ).buildRustPackage
+    )
+    # TODO: stop using buildRustPackage? It's too slow.
+    .buildRustPackage
       {
         pname = "json2dir";
         version = "0.1.0";
