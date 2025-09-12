@@ -1,5 +1,5 @@
 {
-  "file": "Hello, world!",
+  "greeting": "Hello, world!",
   "dir": {
     "subfile": "Content.\n",
     "subdir": {}
