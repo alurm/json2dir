@@ -10,6 +10,7 @@ categories = ["command-line-utilities", "config", "encoding", "filesystem", "tem
 keywords = ["json"]
 
 [dependencies]
+base64 = "0.22.1"
 serde_json = "1.0.141"
 thiserror = "2.0.12"
 

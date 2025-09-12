@@ -1,0 +1,3 @@
+* Figure out if README.md can be used instead of a handwritten scdoc man page.
+* Install an extension for TOML.
+* Recursive type aliases in Rust when?

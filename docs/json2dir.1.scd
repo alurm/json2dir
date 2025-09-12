@@ -8,7 +8,7 @@ json2dir — convert JSON objects to directory trees
 
 *json2dir* < _file.json_
 
-# INPUT SCHEMA
+# CONVERSION SCHEME
 
 - Objects represent directories.
 - Strings represent contents of files.
@@ -16,7 +16,7 @@ json2dir — convert JSON objects to directory trees
 - Arrays of the form `["link", target]` represent symlinks, second element representing the target of the symlink.
 - Arrays of the form `["script", content]` represent executable files, second representing the content of the script.
 
-# BUGS
+# CAVEATS
 
 Regular JSON constraints apply. In particular, the input must be UTF-8. Currently, there's no way to represent files containing non-UTF-8 content.
 
@@ -26,7 +26,7 @@ When using this utility to create files for other users, care must be taken in o
 
 ```
 printf '%s' '{
-  "file": "Hello, world!",
+  "greeting": "Hello, world!",
   "dir": {
     "subfile": "Content.\\n",
     "subdir": {}
@@ -36,7 +36,12 @@ printf '%s' '{
 }' | json2dir
 ```
 
-Here, four files will be added to the current directory: `file`, `dir`, `symlink`, and `script`.
+The following files will be created:
+
+- `greeting`: a regular file containing the text `Hello, world!`.
+- `dir`: a directory with two entries in it (`subfile` and `subdir`).
+- `symlink`: a symbolic link pointing to `target path`,
+- `script`: an executable shell script that prints `Howdy!` when run.
 
 # SEE ALSO
 
