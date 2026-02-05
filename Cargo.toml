@@ -8,6 +8,7 @@ repository = "https://github.com/alurm/json2dir"
 license = "MIT"
 categories = ["command-line-utilities", "config", "encoding", "filesystem", "template-engine"]
 keywords = ["json"]
+default-run = "json2dir"
 
 [dependencies]
 base64 = "0.22.1"
@@ -16,3 +17,10 @@ thiserror = "2.0.12"
 
 [dev-dependencies]
 tempfile = "3.20.0"
+
+[[bin]]
+name = "dir2json"
+required-features = ["dir2json"]
+
+[features]
+dir2json = []

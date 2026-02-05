@@ -34,20 +34,20 @@ enum Error {
     #[error("the key {name:#?} under {context:#?} is a non-regular path component")]
     NotRegularComponent { name: String, context: PathBuf },
 
-    #[error("couldn't create a {kind} at {context:#?}: {e:#?}")]
+    #[error("couldn't create a {kind} at {context:#?}: {e}")]
     Create {
         e: io::Error,
         context: PathBuf,
         kind: &'static str,
     },
 
-    #[error("couldn't set the current dir to the newly created path {context:#?}: {e:#?}")]
+    #[error("couldn't set the current dir to the newly created path {context:#?}: {e}")]
     ChangeDir { context: PathBuf, e: io::Error },
 
-    #[error("couldn't set the current dir {context:#?} to the dir above it: {e:#?}")]
+    #[error("couldn't set the current dir {context:#?} to the dir above it: {e}")]
     ChangeDirUp { context: PathBuf, e: io::Error },
 
-    #[error("couldn't make the script executable at {context:#?}: {e:#?}")]
+    #[error("couldn't make the script executable at {context:#?}: {e}")]
     CouldNotMakeFileExecutable { context: PathBuf, e: io::Error },
 
     #[cfg(not(unix))]
@@ -301,7 +301,7 @@ fn main() -> ExitCode {
     let mut string = String::new();
 
     if let Err(e) = stdin().read_to_string(&mut string) {
-        eprintln!("Error: couldn't read stdin to an internal representation: {e:#?}.");
+        eprintln!("Error: couldn't read stdin to an internal representation: {e}.");
         return ExitCode::FAILURE;
     }
 
