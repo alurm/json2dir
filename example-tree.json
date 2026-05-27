@@ -1,15 +1,9 @@
 {
-  "file": "Hello, world!",
+  "greeting": "Hello, world!",
   "dir": {
     "subfile": "Content.\n",
     "subdir": {}
   },
-  "symlink": [
-    "link",
-    "target path"
-  ],
-  "script": [
-    "script",
-    "#!/bin/sh\necho Howdy!"
-  ]
+  "symlink": ["link", "target path"],
+  "script": ["script", "#!/bin/sh\necho Howdy!"]
 }

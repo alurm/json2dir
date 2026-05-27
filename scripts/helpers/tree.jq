@@ -1,0 +1,1 @@
+def tree: walk(if type != "object" then null end);

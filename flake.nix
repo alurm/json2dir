@@ -1,16 +1,14 @@
 {
   inputs.rust-overlay.url = "github:oxalica/rust-overlay";
 
-  outputs =
-    {
-      nixpkgs,
-      rust-overlay,
-      flake-utils,
-      self,
-    }:
+  outputs = {
+    nixpkgs,
+    rust-overlay,
+    flake-utils,
+    self,
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
+      system: let
         pkgs = (import nixpkgs) {
           inherit system;
           overlays = [
@@ -18,20 +16,18 @@
             rust-overlay.overlays.default
           ];
         };
-      in
-      {
-        packages = pkgs.json2dir
-        # # Not sure how useful this is.
-        # // {
-        #   cross = pkgs.pkgsCross;
-        # };
-        ;
+      in {
+        packages =
+          pkgs.json2dir
+          # # Not sure how useful this is.
+          # // {
+          #   cross = pkgs.pkgsCross;
+          # };
+          ;
 
         devShells.default = pkgs.mkShell {
           inputsFrom = [
-            (
-              if system != "aarch64-darwin" then pkgs.json2dir.check-for-full-coverage else pkgs.json2dir.default
-            )
+            pkgs.json2dir.check-for-full-coverage
           ];
         };
       }
@@ -39,23 +35,23 @@
     // {
       overlays = {
         default = final: prev: {
-          json2dir = final.callPackage (import ./. { check-coverage = false; }) { };
+          json2dir = final.callPackage (import ./. {check-coverage = false;}) {};
         };
         dev = final: prev: {
           json2dir = {
-            default = final.callPackage (import ./. { check-coverage = false; }) { };
-            check-for-full-coverage = final.callPackage (import ./. { check-coverage = true; }) { };
+            default = final.callPackage (import ./. {check-coverage = false;}) {};
+            check-for-full-coverage = final.callPackage (import ./. {check-coverage = true;}) {};
             report-coverage = final.callPackage (import ./. {
               check-coverage = true;
               report = true;
-            }) { };
-            static = final.pkgsStatic.callPackage (import ./. { check-coverage = false; }) { };
+            }) {};
+            static = final.pkgsStatic.callPackage (import ./. {check-coverage = false;}) {};
           };
         };
       };
 
       nixConfig = {
-        extra-substituters = [ "https://json2dir.cachix.org" ];
+        extra-substituters = ["https://json2dir.cachix.org"];
         extra-trusted-public-keys = [
           "json2dir.cachix.org-1:kGit6Ar45Bu+1ivmgMpNSaBBNm8TRQ14WXE0gSIGpHo="
         ];

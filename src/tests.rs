@@ -133,6 +133,15 @@ fn test_unix() -> Result<(), Box<dyn error::Error>> {
             }),
             ..Test::new(r#"{"foo": ["link", ""]}"#)
         },
+        Test {
+            environment: Environment::MakeDir,
+            result: Err(Error::Create {
+                e: make_dummy_io_error(),
+                context: "".into(),
+                kind: "",
+            }),
+            ..Test::new(r#"{"foo": ["link", ""]}"#)
+        },
     ];
 
     for test in tests {
