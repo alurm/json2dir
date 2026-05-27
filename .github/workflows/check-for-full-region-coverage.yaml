@@ -9,10 +9,9 @@ jobs:
   build:
     strategy:
       matrix:
-        # FIXME(2025): cargo-llvm-cov is broken on macos-latest
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: determinatesystems/determinate-nix-action@v3
-      - run: nix build --print-build-logs .#check-for-full-coverage
+    - uses: actions/checkout@v4
+    - uses: determinatesystems/determinate-nix-action@v3
+    - run: nix build --print-build-logs .#check-for-full-coverage
