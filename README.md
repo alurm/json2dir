@@ -16,6 +16,7 @@
   - [With Cargo](#with-cargo)
   - [With Nix flakes](#with-nix-flakes)
 - [Development](#development)
+- [Prior art](#prior-art)
 
 ## TL;DR
 
@@ -121,3 +122,8 @@ To build the project, run `cargo build` or `nix build`. If you're using `rustup`
 Useful scripts may be found in the `scripts` folder.
 
 Feel free to fork the project, open issues, submit PRs.
+
+## Prior art
+
+- [vi/json2](https://github.com/vi/json2): an earlier implementation of this concept by Vitaly Shukela (2013).
+
